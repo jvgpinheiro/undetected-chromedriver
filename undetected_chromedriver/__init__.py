@@ -17,7 +17,7 @@ by UltrafunkAmsterdam (https://github.com/ultrafunkamsterdam)
 from __future__ import annotations
 
 
-__version__ = "3.5.5"
+__version__ = "3.5.6"
 
 import json
 import logging
@@ -273,11 +273,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
         options._session = self
 
         if not options.debugger_address:
-            debug_port = (
-                port
-                if port != 0
-                else selenium.webdriver.common.service.utils.free_port()
-            )
+            debug_port = port if port != 0 else selenium.webdriver.common.service.utils.free_port()
             debug_host = "127.0.0.1"
             options.debugger_address = "%s:%d" % (debug_host, debug_port)
         else:
@@ -285,9 +281,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
             debug_port = int(debug_port)
 
         if enable_cdp_events:
-            options.set_capability(
-                "goog:loggingPrefs", {"performance": "ALL", "browser": "ALL"}
-            )
+            options.set_capability("goog:loggingPrefs", {"performance": "ALL", "browser": "ALL"})
 
         options.add_argument("--remote-debugging-host=%s" % debug_host)
         options.add_argument("--remote-debugging-port=%s" % debug_port)
@@ -316,24 +310,17 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
                 m = re.search("(?:--)?user-data-dir(?:[ =])?(.*)", arg)
                 try:
                     user_data_dir = m[1]
-                    logger.debug(
-                        "user-data-dir found in user argument %s => %s" % (arg, m[1])
-                    )
+                    logger.debug("user-data-dir found in user argument %s => %s" % (arg, m[1]))
                     keep_user_data_dir = True
 
                 except IndexError:
-                    logger.debug(
-                        "no user data dir could be extracted from supplied argument %s "
-                        % arg
-                    )
+                    logger.debug("no user data dir could be extracted from supplied argument %s " % arg)
 
         if not user_data_dir:
             # backward compatiblity
             # check if an old uc.ChromeOptions is used, and extract the user data dir
 
-            if hasattr(options, "user_data_dir") and getattr(
-                options, "user_data_dir", None
-            ):
+            if hasattr(options, "user_data_dir") and getattr(options, "user_data_dir", None):
                 import warnings
 
                 warnings.warn(
@@ -342,9 +329,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
                 )
                 options.add_argument("--user-data-dir=%s" % options.user_data_dir)
                 keep_user_data_dir = True
-                logger.debug(
-                    "user_data_dir property found in options object: %s" % user_data_dir
-                )
+                logger.debug("user_data_dir property found in options object: %s" % user_data_dir)
 
             else:
                 user_data_dir = os.path.normpath(tempfile.mkdtemp())
@@ -369,21 +354,19 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
         options.add_argument("--lang=%s" % language)
 
         if not options.binary_location:
-            options.binary_location = (
-                browser_executable_path or find_chrome_executable()
-            )
+            options.binary_location = browser_executable_path or find_chrome_executable()
 
-        if not options.binary_location or not \
-                pathlib.Path(options.binary_location).exists():
-                raise FileNotFoundError(
-                    "\n---------------------\n"
-                    "Could not determine browser executable."
-                    "\n---------------------\n"
-                    "Make sure your browser is installed in the default location (path).\n"
-                    "If you are sure about the browser executable, you can specify it using\n"
-                    "the `browser_executable_path='{}` parameter.\n\n"
-                    .format("/path/to/browser/executable" if IS_POSIX else "c:/path/to/your/browser.exe")
+        if not options.binary_location or not pathlib.Path(options.binary_location).exists():
+            raise FileNotFoundError(
+                "\n---------------------\n"
+                "Could not determine browser executable."
+                "\n---------------------\n"
+                "Make sure your browser is installed in the default location (path).\n"
+                "If you are sure about the browser executable, you can specify it using\n"
+                "the `browser_executable_path='{}` parameter.\n\n".format(
+                    "/path/to/browser/executable" if IS_POSIX else "c:/path/to/your/browser.exe"
                 )
+            )
 
         self._delay = 3
 
@@ -395,16 +378,15 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
         if no_sandbox:
             options.arguments.extend(["--no-sandbox", "--test-type"])
 
-        if headless or getattr(options, 'headless', None):
-            #workaround until a better checking is found
+        if headless or getattr(options, "headless", None):
+            # workaround until a better checking is found
             try:
                 if self.patcher.version_main < 108:
                     options.add_argument("--headless=chrome")
                 elif self.patcher.version_main >= 108:
                     options.add_argument("--headless=new")
             except:
-                logger.warning("could not detect version_main."
-                               "therefore, we are assuming it is chrome 108 or higher")
+                logger.warning("could not detect version_main." "therefore, we are assuming it is chrome 108 or higher")
                 options.add_argument("--headless=new")
 
         options.add_argument("--window-size=1920,1080")
@@ -413,10 +395,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
         # fixes "could not connect to chrome" error when running
         # on linux using privileged user like root (which i don't recommend)
 
-        options.add_argument(
-            "--log-level=%d" % log_level
-            or divmod(logging.getLogger().getEffectiveLevel(), 10)[0]
-        )
+        options.add_argument("--log-level=%d" % log_level or divmod(logging.getLogger().getEffectiveLevel(), 10)[0])
 
         if hasattr(options, "handle_prefs"):
             options.handle_prefs(user_data_dir)
@@ -445,9 +424,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
             desired_capabilities = options.to_capabilities()
 
         if not use_subprocess:
-            self.browser_pid = start_detached(
-                options.binary_location, *options.arguments
-            )
+            self.browser_pid = start_detached(options.binary_location, *options.arguments)
         else:
             browser = subprocess.Popen(
                 [options.binary_location, *options.arguments],
@@ -458,10 +435,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
             )
             self.browser_pid = browser.pid
 
-
-        service = selenium.webdriver.chromium.service.ChromiumService(
-            self.patcher.executable_path
-        )
+        service = selenium.webdriver.chromium.service.ChromiumService(self.patcher.executable_path)
 
         super().__init__(
             service=service,
@@ -473,9 +447,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
 
         if enable_cdp_events:
             if logging.getLogger().getEffectiveLevel() == logging.DEBUG:
-                logging.getLogger(
-                    "selenium.webdriver.remote.remote_connection"
-                ).setLevel(20)
+                logging.getLogger("selenium.webdriver.remote.remote_connection").setLevel(20)
             reactor = Reactor(self)
             reactor.start()
             self.reactor = reactor
@@ -485,7 +457,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
         else:
             self._web_element_cls = WebElement
 
-        if headless or getattr(options, 'headless', None):
+        if headless or getattr(options, "headless", None):
             self._configure_headless()
 
     def _configure_headless(self):
@@ -519,11 +491,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
                 logger.info("patch user-agent string")
                 self.execute_cdp_cmd(
                     "Network.setUserAgentOverride",
-                    {
-                        "userAgent": self.execute_script(
-                            "return navigator.userAgent"
-                        ).replace("Headless", "")
-                    },
+                    {"userAgent": self.execute_script("return navigator.userAgent").replace("Headless", "")},
                 )
                 self.execute_cdp_cmd(
                     "Page.addScriptToEvaluateOnNewDocument",
@@ -665,11 +633,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
         return super().get(url)
 
     def add_cdp_listener(self, event_name, callback):
-        if (
-            self.reactor
-            and self.reactor is not None
-            and isinstance(self.reactor, Reactor)
-        ):
+        if self.reactor and self.reactor is not None and isinstance(self.reactor, Reactor):
             self.reactor.add_event_handler(event_name, callback)
             return self.reactor.handlers
         return False
@@ -679,9 +643,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
             self.reactor.handlers.clear()
 
     def window_new(self):
-        self.execute(
-            selenium.webdriver.remote.command.Command.NEW_WINDOW, {"type": "window"}
-        )
+        self.execute(selenium.webdriver.remote.command.Command.NEW_WINDOW, {"type": "window"})
 
     def tab_new(self, url: str):
         """
@@ -737,6 +699,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
             value: str
         Returns: Generator[webelement.WebElement]
         """
+
         def search_frame(f=None):
             if not f:
                 # ensure we are on main content frame
@@ -752,7 +715,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
         for elem in search_frame():
             yield elem
         # get iframes
-        frames = self.find_elements('css selector', 'iframe')
+        frames = self.find_elements("css selector", "iframe")
 
         # search per frame
         for f in frames:
@@ -775,11 +738,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
             logger.debug("gracefully closed browser")
         except Exception as e:  # noqa
             pass
-        if (
-            hasattr(self, "keep_user_data_dir")
-            and hasattr(self, "user_data_dir")
-            and not self.keep_user_data_dir
-        ):
+        if hasattr(self, "keep_user_data_dir") and hasattr(self, "user_data_dir") and not self.keep_user_data_dir:
             for _ in range(5):
                 try:
                     shutil.rmtree(self.user_data_dir, ignore_errors=False)
@@ -787,8 +746,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
                     pass
                 except (RuntimeError, OSError, PermissionError) as e:
                     logger.debug(
-                        "When removing the temp profile, a %s occured: %s\nretrying..."
-                        % (e.__class__.__name__, e)
+                        "When removing the temp profile, a %s occured: %s\nretrying..." % (e.__class__.__name__, e)
                     )
                 else:
                     logger.debug("successfully removed %s" % self.user_data_dir)
@@ -809,10 +767,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
             if inspect.ismethod(original) and not inspect.isclass(original):
 
                 def newfunc(*args, **kwargs):
-                    logger.debug(
-                        "calling %s with args %s and kwargs %s\n"
-                        % (original.__qualname__, args, kwargs)
-                    )
+                    logger.debug("calling %s with args %s and kwargs %s\n" % (original.__qualname__, args, kwargs))
                     return original(*args, **kwargs)
 
                 return newfunc
@@ -844,11 +799,7 @@ class Chrome(selenium.webdriver.chrome.webdriver.WebDriver):
     def _ensure_close(cls, self):
         # needs to be a classmethod so finalize can find the reference
         logger.info("ensuring close")
-        if (
-            hasattr(self, "service")
-            and hasattr(self.service, "process")
-            and hasattr(self.service.process, "kill")
-        ):
+        if hasattr(self, "service") and hasattr(self.service, "process") and hasattr(self.service.process, "kill"):
             self.service.process.kill()
 
 
@@ -886,12 +837,10 @@ def find_chrome_executable():
             ("PROGRAMFILES", "PROGRAMFILES(X86)", "LOCALAPPDATA", "PROGRAMW6432"),
         ):
             if item is not None:
-                for subitem in (
-                    "Google/Chrome/Application",
-                ):
+                for subitem in ("Google/Chrome/Application",):
                     candidates.add(os.sep.join((item, subitem, "chrome.exe")))
     for candidate in candidates:
-        logger.debug('checking if %s exists and is executable' % candidate)
+        logger.debug("checking if %s exists and is executable" % candidate)
         if os.path.exists(candidate) and os.access(candidate, os.X_OK):
-            logger.debug('found! using %s' % candidate)
+            logger.debug("found! using %s" % candidate)
             return os.path.normpath(candidate)
